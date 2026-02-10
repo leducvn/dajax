@@ -1,0 +1,27 @@
+# Exclude these top-level directories
+/estimators/
+/losses/
+/mlmodels/
+/obsolete/
+
+# Exclude specific data subdirectories
+/data/fuxi/
+/data/pangu/
+
+# Python cache files
+*.pyc
+*.pyo
+__pycache__/
+*.py[cod]
+*$py.class
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
