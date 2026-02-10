@@ -111,11 +111,12 @@ nature = SHQG(config=config, param=law)
 model = SHQG(config=config, param=law)
 
 # DA configuration
+obserr=4.0*jnp.sqrt(3)/jnp.pi
 daconfig = DAConfig(
     dawindow=4,      # DA window length
     obsfreq=4,       # Observation frequency
     nmember=100,     # Ensemble size
-    obserr=4.0,      # Observation error
+    obserr=obserr,   # Observation error
     rho=1.0          # Inflation factor
 )
 
@@ -126,7 +127,7 @@ timemask = DATimeMask(ntime=int(daconfig.dawindow/daconfig.obsfreq)+1)
 
 settings = {
     'u': ObsSetting(
-        distribution=Logistic(scale=4.0, bias=0.0),
+        distribution=Logistic(scale=daconfig.obserr, bias=0.0),
         mapper=IdentityMap('u'),
         mask=mask,
         timemask=timemask
@@ -135,7 +136,7 @@ settings = {
 observation = Observation(settings, obsstate_class=nature.ObsState)
 
 # DA scheme
-scheme = IDA(rho=1.0)
+scheme = IDA(rho=daconfig.rho)
 
 # DA system
 da_system = IDAOSSE(nature, model, observation, scheme, diagnostics, daconfig)
