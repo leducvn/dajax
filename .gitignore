@@ -1,3 +1,5 @@
+.gitignore
+
 # Exclude these top-level directories
 /estimators/
 /losses/

@@ -135,6 +135,11 @@ settings = {
 }
 observation = Observation(settings, obsstate_class=nature.ObsState)
 
+# Diagnostics
+me = MEScore({'u': no_selector,})
+rmse = RMSEScore({'u': no_selector,})
+diagnostics = Diagnostics([me,rmse])
+
 # DA scheme
 scheme = IDA(rho=daconfig.rho)
 
