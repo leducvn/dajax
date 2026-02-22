@@ -129,6 +129,33 @@ class PInfinite(Distribution):
    def scale(self, loc: jax.Array) -> jax.Array:
       return jnp.broadcast_to(self.scale_param, loc.shape)
 
+class GaussianMixture(Distribution):
+   """Gaussian mixture distribution for generating observations with gross errors."""
+   def __init__(self, scale: Union[float, jax.Array], bias: Union[float, jax.Array] = 0.0,
+               p_outlier: float = 0.01, outlier_scale: float = 10.0):
+      self.scale_param = jnp.asarray(scale)
+      self.bias = jnp.asarray(bias)
+      self.p_outlier = p_outlier
+      self.outlier_scale = outlier_scale
+   
+   @partial(jax.jit, static_argnames=['self'])
+   def sample(self, key: jax.Array, loc: jax.Array) -> jax.Array:
+      """Sample from the Gaussian mixture."""
+      key1, key2 = jax.random.split(key)
+      biased_loc = loc + jnp.broadcast_to(self.bias, loc.shape)
+      # Determine which observations are outliers
+      is_outlier = jax.random.bernoulli(key1, self.p_outlier, loc.shape)
+      # Sample Gaussian noise
+      noise = jax.random.normal(key2, loc.shape)
+      # Apply different scales based on outlier status
+      effective_scale = jnp.where(is_outlier, self.outlier_scale * self.scale_param, self.scale_param)
+      return biased_loc + noise * effective_scale
+   
+   @partial(jax.jit, static_argnames=['self'])
+   def scale(self, loc: jax.Array) -> jax.Array:
+      """Return the nominal scale (not outlier scale)."""
+      return jnp.broadcast_to(self.scale_param, loc.shape)
+
 class ObsParam:
 	"""Class for handling observation parameters"""
 	def __init__(self, params: Dict[str, Union[int, jax.Array]]):

@@ -8,6 +8,7 @@ from dajax.models.base import add_operators, Model
 @add_operators
 class State(NamedTuple):
    u: jax.Array  # [nx]
+@add_operators
 class PhyState(NamedTuple):
    u: jax.Array  # [nx]
 
@@ -135,7 +136,9 @@ class Lorenz96(Model[State, PhyState, Param, Config]):
 		expected_shape = self.state_info['u']
 		actual_shape = state.u.shape
 		if len(actual_shape) == len(expected_shape): return self._mod2phy(state, param)
-		return jax.vmap(self._mod2phy, in_axes=(0,None))(state, param)
+		result = jax.vmap(self._mod2phy, in_axes=(0,None))(state, param)
+		if isinstance(result, PhyState): return result
+		return PhyState(*result)
 
 	@partial(jax.jit, static_argnames=['self'])
 	def _phy2mod(self, phy_increment: PhyState, ref_state: State, param: Param) -> State:
